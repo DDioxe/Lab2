@@ -12,6 +12,25 @@ web.vm.provision "shell", inline: <<-SHELL
 sudo apt-get update
 sudo apt-get install apache2 -y
 sudo systemctl enable apache2
+# Установка MySQLServer
+sudo apt-get install -y mysql-client
+# Установка модулей для работы из PHP
+sudo apt install php libapache2-mod-php php-mysql -y
+# Рестарт веб-сервера
+sudo systemctl restart apache2
+# Создание файла с текстом
+cd /var/www/html/
+echo '<?php
+$host = "192.168.50.11";
+$user = "vagrant_test";
+$pass = "Tusur123";
+$db = "testdb";
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+die("Connection failed: " . $conn->connect_error);
+}
+echo "Connected to MySQL successfully!";
+?>' > test_db.php
 SHELL
 end
 # Создание виртуальной машины базы данных
@@ -23,6 +42,9 @@ db.vm.provision "shell", inline: <<-SHELL
 sudo apt-get update
 sudo apt-get install -y mysql-server
 sudo systemctl enable mysql
+sudo mysql -u root
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo sed -i 's/bind-address = 127.0.0.1/bind-address = 192.168.50.11/' /etc/mysql/mysql.conf.d/mysqld.cnf
 SHELL
 end
 # Создание виртуальной машины балансировщика нагрузки
